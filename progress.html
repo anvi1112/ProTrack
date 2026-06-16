@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProTrack — Progress</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">🌿 ProTrack</a>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="habits.html">Habits</a>
+      <a href="goals.html">Goals</a>
+      <a href="#" onclick="logoutUser()" class="btn-nav">Logout</a>
+    </div>
+  </nav>
+
+  <!-- PROGRESS BODY -->
+  <div class="dashboard">
+
+    <div class="page-header">
+      <h2>📊 My Progress</h2>
+      <p>See how far you've come this week</p>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span>📋</span>
+        <h3 id="totalHabits">0</h3>
+        <p>Total Habits</p>
+      </div>
+      <div class="stat-card">
+        <span>✅</span>
+        <h3 id="doneHabits">0</h3>
+        <p>Completed Today</p>
+      </div>
+      <div class="stat-card">
+        <span>🎯</span>
+        <h3 id="totalGoals">0</h3>
+        <p>Total Goals</p>
+      </div>
+      <div class="stat-card">
+        <span>📈</span>
+        <h3 id="avgProgress">0%</h3>
+        <p>Avg Goal Progress</p>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+<div class="progress-grid">
+
+  <!-- HABITS CHART -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <h3>📋 Habits Overview</h3>
+    </div>
+    <canvas id="habitsChart"></canvas>
+  </div>
+
+  <!-- GOALS CHART -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <h3>🎯 Goals Progress</h3>
+    </div>
+    <canvas id="goalsChart"></canvas>
+  </div>
+
+  <!-- WEEKLY SCORE -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <h3>📅 Weekly Score</h3>
+    </div>
+    <canvas id="weeklyChart"></canvas>
+  </div>
+
+</div>
+
+    </div>
+  </div>
+
+<script src="js/auth.js"></script>
+<script>checkLogin();</script>
+<script src="js/progress.js"></script>
+</body>
+</html>

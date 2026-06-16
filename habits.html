@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProTrack — Habits</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">🌿 ProTrack</a>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="goals.html">Goals</a>
+      <a href="progress.html">Progress</a>
+      <a href="#" onclick="logoutUser()" class="btn-nav">Logout</a>
+    </div>
+  </nav>
+
+  <!-- HABITS BODY -->
+  <div class="dashboard">
+
+    <div class="page-header">
+      <h2>📋 My Habits</h2>
+      <p>Build routines that stick — one day at a time</p>
+    </div>
+
+    <!-- ADD HABIT -->
+<div class="add-habit-card">
+  <h3>Add a New Habit</h3>
+  <div class="add-habit-row">
+    <input type="text" id="habitInput" placeholder="e.g. Read 20 pages..." />
+    <button onclick="addHabit()">+ Add Habit</button>
+  </div>
+</div>
+    <!-- HABIT LIST -->
+    <!-- REMINDER BANNER -->
+<div class="reminder-banner" id="reminderBanner">
+  <span>🔔</span>
+  <p>Don't forget to add and check off your daily habits! Consistency is key to growth 🌱</p>
+</div>
+
+<!-- HABIT LIST -->
+<div class="dash-card" style="margin-top: 24px;">
+  <div class="dash-card-header">
+    <h3>Today's Habits</h3>
+    <span id="habit-count">0 of 0 done</span>
+  </div>
+  <ul class="habit-list" id="habitList">
+    <!-- habits will appear here -->
+  </ul>
+  <p class="empty-msg" id="emptyMsg">No habits yet. Add one above! 🌱</p>
+</div>
+
+  </div>
+
+<script src="js/auth.js"></script>
+<script>checkLogin();</script>
+<script src="js/habits.js"></script>
+</body>
+</html>

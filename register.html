@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProTrack — Register</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">🌿 ProTrack</a>
+    <div class="nav-links">
+      <a href="login.html" class="btn-nav">Login</a>
+    </div>
+  </nav>
+
+  <!-- REGISTER SECTION -->
+  <section class="auth-section">
+    <div class="auth-card">
+
+      <div class="auth-header">
+        <h2>Join ProTrack 🌿</h2>
+        <p>Create your account and start growing</p>
+      </div>
+
+      <div class="auth-form">
+
+         <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="regName" placeholder="Your full name" autocomplete="off" />
+         </div>
+
+         <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="regEmail" placeholder="you@email.com" autocomplete="off" />
+         </div>
+
+         <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" placeholder="Create a password" autocomplete="new-password" />
+         </div>
+
+         <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="regConfirm" placeholder="Repeat your password" autocomplete="new-password" />
+         </div>
+
+          <button class="btn-submit" onclick="registerUser()">Create Account →</button>
+
+          <p id="registerMsg"></p>
+
+         <p class="switch-auth">
+           Already have an account?
+           <a href="login.html">Login here</a>
+         </p>
+
+       </div>
+    </div>
+  </section>
+<script src="js/auth.js"></script>
+</body>
+</html>

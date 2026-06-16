@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProTrack — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">🌿 ProTrack</a>
+    <div class="nav-links">
+      <a href="habits.html">Habits</a>
+      <a href="goals.html">Goals</a>
+      <a href="progress.html">Progress</a>
+     <a href="#" onclick="logoutUser()" class="btn-nav">Logout</a>
+    </div>
+  </nav>
+
+  <!-- DASHBOARD BODY -->
+  <div class="dashboard">
+
+    <!-- WELCOME BANNER -->
+    <div class="welcome-banner">
+      <div>
+        <h2 id="welcomeName">Good Morning 🌸</h2>
+        <p>Here's how your day is looking so far</p>
+      </div>
+     <div class="score-badge">
+        <p>Today's Score</p>
+        <h1 id="todayScore">0%</h1>
+     </div>
+    </div>
+
+   <!-- STATS ROW -->
+<div class="stats-row">
+  <div class="stat-card">
+    <span>📋</span>
+    <h3 id="statHabits">0/0</h3>
+    <p>Habits Done</p>
+  </div>
+  <div class="stat-card">
+    <span>🎯</span>
+    <h3 id="statGoals">0</h3>
+    <p>Goals Active</p>
+  </div>
+  <div class="stat-card">
+    <span>🔥</span>
+    <h3 id="statStreak">0</h3>
+    <p>Day Streak</p>
+  </div>
+  <div class="stat-card">
+    <span>⭐</span>
+    <h3 id="statBest">0%</h3>
+    <p>Best Score</p>
+  </div>
+</div>
+
+    <!-- MAIN GRID -->
+    <div class="dashboard-grid">
+
+      <!-- TODAY'S HABITS -->
+     <div class="dash-card">
+  <div class="dash-card-header">
+    <h3>📋 Today's Habits</h3>
+    <a href="habits.html">View All →</a>
+  </div>
+  <ul class="habit-list" id="dashHabitList"></ul>
+  <p class="empty-msg" id="dashHabitEmpty">
+    You haven't added any habits yet! 
+    <a href="habits.html" style="color:#87A878; font-weight:500;">Add your first habit →</a>
+  </p>
+</div>
+
+      <!-- ACTIVE GOALS -->
+      <div class="dash-card">
+  <div class="dash-card-header">
+    <h3>🎯 Active Goals</h3>
+    <a href="goals.html">View All →</a>
+  </div>
+  <div id="dashGoalList"></div>
+  <p class="empty-msg" id="dashGoalEmpty">
+    You haven't set any goals yet! 
+    <a href="goals.html" style="color:#87A878; font-weight:500;">Set your first goal →</a>
+  </p>
+</div>
+
+      <!-- DAILY QUOTE -->
+      <div class="dash-card quote-card">
+        <p class="quote-text">"Small daily improvements are the key to staggering long-term results."</p>
+        <p class="quote-author">— Robin Sharma</p>
+      </div>
+
+    </div>
+  </div>
+
+<script src="js/auth.js"></script>
+<script>
+  const user = checkLogin();
+  if (user) {
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
+    document.getElementById('welcomeName').textContent = greeting + ', ' + user.name + ' 🌸';
+  }
+
+  // ===== LOAD REAL DATA =====
+  const habits = JSON.parse(localStorage.getItem('habits')) || [];
+  const goals = JSON.parse(localStorage.getItem('goals')) || [];
+
+  const doneHabits = habits.filter(h => h.done).length;
+  const totalHabits = habits.length;
+
+  // Today's Score = % of habits done today (or 0 if none)
+  const todayScore = totalHabits > 0 ? Math.round((doneHabits / totalHabits) * 100) : 0;
+  document.getElementById('todayScore').textContent = todayScore + '%';
+
+  // Stats row
+  document.getElementById('statHabits').textContent = `${doneHabits}/${totalHabits}`;
+  document.getElementById('statGoals').textContent = goals.length;
+
+  // Best score = highest goal progress (or 0)
+  const bestScore = goals.length > 0 ? Math.max(...goals.map(g => g.progress)) : 0;
+  document.getElementById('statBest').textContent = bestScore + '%';
+
+  // Day streak - simple placeholder logic (counts as 1 if any habit done today, else 0)
+  document.getElementById('statStreak').textContent = doneHabits > 0 ? 1 : 0;
+
+  // ===== TODAY'S HABITS PREVIEW =====
+  const habitList = document.getElementById('dashHabitList');
+  const habitEmpty = document.getElementById('dashHabitEmpty');
+
+  if (habits.length === 0) {
+    habitEmpty.style.display = 'block';
+  } else {
+    habitEmpty.style.display = 'none';
+    habits.slice(0, 5).forEach(habit => {
+      const li = document.createElement('li');
+      li.className = 'habit-item' + (habit.done ? ' done' : '');
+      li.innerHTML = `
+        <span class="habit-check ${habit.done ? '' : 'empty'}">${habit.done ? '✓' : '○'}</span>
+        <span>${habit.name}</span>
+      `;
+      habitList.appendChild(li);
+    });
+  }
+
+  // ===== ACTIVE GOALS PREVIEW =====
+  const goalList = document.getElementById('dashGoalList');
+  const goalEmpty = document.getElementById('dashGoalEmpty');
+
+  if (goals.length === 0) {
+    goalEmpty.style.display = 'block';
+  } else {
+    goalEmpty.style.display = 'none';
+    goals.slice(0, 3).forEach(goal => {
+      const div = document.createElement('div');
+      div.className = 'goal-item';
+      div.innerHTML = `
+        <div class="goal-info">
+          <p>${goal.name}</p>
+          <span>${goal.progress}% done</span>
+        </div>
+        <div class="goal-bar">
+          <div class="goal-fill" style="width:${goal.progress}%"></div>
+        </div>
+      `;
+      goalList.appendChild(div);
+    });
+  }
+</script>
+</body>
+</html>

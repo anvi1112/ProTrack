@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProTrack — Goals</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">🌿 ProTrack</a>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="habits.html">Habits</a>
+      <a href="progress.html">Progress</a>
+      <a href="#" onclick="logoutUser()" class="btn-nav">Logout</a>
+    </div>
+  </nav>
+
+  <!-- GOALS BODY -->
+  <div class="dashboard">
+
+    <div class="page-header">
+      <h2>🎯 My Goals</h2>
+      <p>Set your targets and track how far you've come</p>
+    </div>
+
+    <!-- ADD GOAL -->
+    <div class="add-habit-card">
+      <h3>Add a New Goal</h3>
+      <div class="add-goal-row">
+        <input type="text" id="goalInput" placeholder="e.g. Complete internship project..." />
+        <input type="number" id="goalProgress" placeholder="Progress % (0-100)" min="0" max="100" />
+        <button onclick="addGoal()">+ Add Goal</button>
+      </div>
+    </div>
+
+    <!-- GOAL LIST -->
+    <div class="dash-card" style="margin-top: 24px;">
+      <div class="dash-card-header">
+        <h3>Active Goals</h3>
+        <span id="goal-count">0 goals</span>
+      </div>
+      <div id="goalList"></div>
+      <p class="empty-msg" id="goalEmptyMsg">No goals yet. Add one above! 🎯</p>
+    </div>
+
+  </div>
+
+ <script src="js/auth.js"></script>
+<script>checkLogin();</script>
+<script src="js/goals.js"></script>
+</body>
+</html>
