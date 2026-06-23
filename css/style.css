@@ -26,6 +26,7 @@ body {
   font-size: 1.5rem;
   color: #5C7A4E;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .nav-links a {

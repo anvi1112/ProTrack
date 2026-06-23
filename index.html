@@ -12,14 +12,8 @@
   <!-- NAVBAR -->
   <nav class="navbar">
   <a href="index.html" class="logo">🌿 ProTrack</a>
-  <div class="nav-links">
-    <a href="index.html" class="active">Home</a>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="habits.html">Habits</a>
-    <a href="todo.html">To-Do</a>
-    <a href="goals.html">Goals</a>
-    <a href="progress.html">Progress</a>
-    <a href="login.html" class="btn-nav">Login</a>
+  <div class="nav-links" id="navLinks">
+    <!-- filled by JS -->
   </div>
 </nav>
 
@@ -50,7 +44,7 @@
       <span style="font-size:0.9rem; color:#3E2E1E;">Build your streak</span>
     </div>
   </div>
-   <a href="register.html" style="display:block; margin-top:20px; background:#87A878; color:white; text-align:center; padding:10px; border-radius:20px; text-decoration:none; font-size:0.85rem;">Join for free 🌱</a>
+<a href="register.html" id="heroBtn" style="display:block; margin-top:20px; background:#87A878; color:white; text-align:center; padding:10px; border-radius:20px; text-decoration:none; font-size:0.85rem;">Join for free 🌱</a>
 </div>
   </section>
 
@@ -80,6 +74,72 @@
   <footer>
     <p>🌿 ProTrack — Built for students, by a student.</p>
   </footer>
+<script>
+  const loggedIn = localStorage.getItem('loggedInUser');
+  const nav = document.getElementById('navLinks');
 
+  if (loggedIn) {
+    nav.innerHTML = `
+      <a href="dashboard.html">Dashboard</a>
+      <a href="habits.html">Habits</a>
+      <a href="todo.html">To-Do</a>
+      <a href="goals.html">Goals</a>
+      <a href="progress.html">Progress</a>
+      <a href="#" onclick="localStorage.removeItem('loggedInUser'); window.location.reload();" class="btn-nav">Logout</a>
+    `;
+  } else {
+    nav.innerHTML = `
+      <a href="login.html" class="active">Login</a>
+      <a href="register.html" class="btn-nav">Get Started</a>
+    `;
+  }
+
+  // Show notification if not logged in and visiting feature pages
+const currentPage = window.location.pathname;
+const featurePages = ['habits', 'todo', 'goals', 'progress', 'dashboard'];
+const isFeaturePage = featurePages.some(page => currentPage.includes(page));
+
+if (!loggedIn && isFeaturePage) {
+  // Show toast notification
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #5C7A4E;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 9999;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  `;
+  toast.innerHTML = `
+    <p>🔔 Login for a better experience and to save your data!</p>
+    <a href="login.html" style="background:white; color:#5C7A4E; padding:8px 16px; border-radius:20px; text-decoration:none; font-weight:600; text-align:center; font-size:0.85rem;">Login Now →</a>
+  `;
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.remove(), 6000);
+}
+  // Update hero card button
+  const heroBtn = document.getElementById('heroBtn');
+  if (heroBtn && loggedIn) {
+    heroBtn.textContent = 'Go to Dashboard 🌿';
+    heroBtn.href = 'dashboard.html';
+  }
+
+  // Update Start Your Journey button
+  const startBtn = document.querySelector('.btn-primary');
+  if (startBtn && loggedIn) {
+    startBtn.textContent = 'Go to Dashboard 🌿';
+    startBtn.href = 'dashboard.html';
+  }
+</script>
 </body>
 </html>

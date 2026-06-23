@@ -91,7 +91,37 @@ function showMessage(elementId, message, type) {
 function checkLogin() {
   const user = JSON.parse(localStorage.getItem('loggedInUser'));
   if (!user) {
-    window.location.href = 'login.html';
+    // Don't redirect — just show nudge notification
+    setTimeout(() => {
+      const existing = document.getElementById('loginNudge');
+      if (existing) return;
+
+      const toast = document.createElement('div');
+      toast.id = 'loginNudge';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background-color: #5C7A4E;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        z-index: 9999;
+        max-width: 280px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      `;
+      toast.innerHTML = `
+        <p>🔔 Login for a better experience and to save your data!</p>
+        <a href="login.html" style="background:white; color:#5C7A4E; padding:8px 16px; border-radius:20px; text-decoration:none; font-weight:600; text-align:center; font-size:0.85rem;">Login Now →</a>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 6000);
+    }, 1000);
   }
   return user;
 }
