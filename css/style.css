@@ -997,3 +997,12 @@ footer {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ===== ACTIVE NAV LINK ===== */
+.nav-links a.active {
+  color: #5C7A4E;
+  font-weight: 600;
+  border-bottom: 2px solid #87A878;
+  padding-bottom: 2px;
+}
+
