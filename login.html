@@ -55,6 +55,9 @@
         </div>
     </div>
   </section>
-<script src="js/auth.js"></script>
+<script type="module">
+  import { loginUser } from './js/auth.js';
+  window.loginUser = loginUser;
+</script>
 </body>
 </html>

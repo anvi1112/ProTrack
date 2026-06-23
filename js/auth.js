@@ -1,48 +1,57 @@
-// ===== REGISTER FUNCTION =====
-function registerUser() {
+import { db, collection, addDoc, getDocs, query, where } from './firebase-config.js';
+
+// ===== REGISTER =====
+async function registerUser() {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value.trim();
   const confirm = document.getElementById('regConfirm').value.trim();
 
-  // Basic validation
   if (!name || !email || !password || !confirm) {
     showMessage('registerMsg', 'Please fill in all fields!', 'error');
     return;
   }
-
   if (password !== confirm) {
     showMessage('registerMsg', 'Passwords do not match!', 'error');
     return;
   }
-
   if (password.length < 6) {
     showMessage('registerMsg', 'Password must be at least 6 characters!', 'error');
     return;
   }
 
-  // Check if email already exists
-  const users = JSON.parse(localStorage.getItem('users')) || [];
-  const exists = users.find(u => u.email === email);
+  try {
+    // Check if email already exists
+    const q = query(collection(db, 'users'), where('email', '==', email));
+    const existing = await getDocs(q);
 
-  if (exists) {
-    showMessage('registerMsg', 'This email is already registered!', 'error');
-    return;
+    if (!existing.empty) {
+      showMessage('registerMsg', 'This email is already registered!', 'error');
+      return;
+    }
+
+    // Save to Firebase
+    await addDoc(collection(db, 'users'), {
+      name,
+      email,
+      password,
+      createdAt: new Date().toISOString()
+    });
+
+    // Also save to localStorage for session
+    localStorage.setItem('loggedInUser', JSON.stringify({ name, email }));
+
+    showMessage('registerMsg', 'Account created successfully! Redirecting...', 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+
+  } catch (error) {
+    showMessage('registerMsg', 'Something went wrong! Try again.', 'error');
+    console.error(error);
   }
-
-  // Save new user
-  users.push({ name, email, password });
-  localStorage.setItem('users', JSON.stringify(users));
-
-  showMessage('registerMsg', 'Account created successfully! Redirecting...', 'success');
-
-  setTimeout(() => {
-    window.location.href = 'login.html';
-  }, 1500);
 }
 
-// ===== LOGIN FUNCTION =====
-function loginUser() {
+// ===== LOGIN =====
+async function loginUser() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value.trim();
 
@@ -51,31 +60,58 @@ function loginUser() {
     return;
   }
 
-  const users = JSON.parse(localStorage.getItem('users')) || [];
-  const user = users.find(u => u.email === email && u.password === password);
+  try {
+    const q = query(
+      collection(db, 'users'),
+      where('email', '==', email),
+      where('password', '==', password)
+    );
+    const result = await getDocs(q);
 
-  if (!user) {
-    showMessage('loginMsg', 'Invalid email or password!', 'error');
-    return;
+    if (result.empty) {
+      showMessage('loginMsg', 'Invalid email or password!', 'error');
+      return;
+    }
+
+    const user = result.docs[0].data();
+    localStorage.setItem('loggedInUser', JSON.stringify({ name: user.name, email: user.email }));
+
+    showMessage('loginMsg', 'Login successful! Redirecting...', 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+
+  } catch (error) {
+    showMessage('loginMsg', 'Something went wrong! Try again.', 'error');
+    console.error(error);
   }
-
-  // Save logged in user session
-  localStorage.setItem('loggedInUser', JSON.stringify(user));
-
-  showMessage('loginMsg', 'Login successful! Redirecting...', 'success');
-
-  setTimeout(() => {
-    window.location.href = 'dashboard.html';
-  }, 1500);
 }
 
-// ===== LOGOUT FUNCTION =====
+// ===== LOGOUT =====
 function logoutUser() {
   localStorage.removeItem('loggedInUser');
   window.location.href = 'login.html';
 }
 
-// ===== SHOW MESSAGE HELPER =====
+// ===== FORGOT PASSWORD =====
+async function verifyEmailForReset(email) {
+  const q = query(collection(db, 'users'), where('email', '==', email));
+  const result = await getDocs(q);
+  return !result.empty;
+}
+
+async function resetPasswordInDB(email, newPassword) {
+  // Note: Firestore doesn't update like this directly
+  // For simplicity we add a new doc with updated password
+  const q = query(collection(db, 'users'), where('email', '==', email));
+  const result = await getDocs(q);
+  if (!result.empty) {
+    const docRef = result.docs[0].ref;
+    await docRef.update({ password: newPassword });
+    return true;
+  }
+  return false;
+}
+
+// ===== SHOW MESSAGE =====
 function showMessage(elementId, message, type) {
   const el = document.getElementById(elementId);
   if (!el) return;
@@ -86,16 +122,13 @@ function showMessage(elementId, message, type) {
   el.style.textAlign = 'center';
 }
 
-// ===== PROTECT PAGES =====
-// Call this on dashboard, habits, goals, progress pages
+// ===== CHECK LOGIN =====
 function checkLogin() {
   const user = JSON.parse(localStorage.getItem('loggedInUser'));
   if (!user) {
-    // Don't redirect — just show nudge notification
     setTimeout(() => {
       const existing = document.getElementById('loginNudge');
       if (existing) return;
-
       const toast = document.createElement('div');
       toast.id = 'loginNudge';
       toast.style.cssText = `
@@ -116,7 +149,7 @@ function checkLogin() {
         gap: 10px;
       `;
       toast.innerHTML = `
-        <p>🔔 Login for a better experience and to save your data!</p>
+        <p>🔔 Login for a better experience!</p>
         <a href="login.html" style="background:white; color:#5C7A4E; padding:8px 16px; border-radius:20px; text-decoration:none; font-weight:600; text-align:center; font-size:0.85rem;">Login Now →</a>
       `;
       document.body.appendChild(toast);
@@ -126,7 +159,8 @@ function checkLogin() {
   return user;
 }
 
-// ===== GET LOGGED IN USER =====
 function getUser() {
   return JSON.parse(localStorage.getItem('loggedInUser'));
 }
+
+export { registerUser, loginUser, logoutUser, checkLogin, getUser, showMessage, verifyEmailForReset, resetPasswordInDB };

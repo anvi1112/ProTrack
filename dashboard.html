@@ -111,8 +111,10 @@
     </div>
   </div>
 
-<script src="js/auth.js"></script>
-<script>
+<script type="module">
+  import { checkLogin, logoutUser } from './js/auth.js';
+  window.logoutUser = logoutUser;
+
   const user = checkLogin();
   if (user) {
     const hour = new Date().getHours();
@@ -127,19 +129,15 @@
   const doneHabits = habits.filter(h => h.done).length;
   const totalHabits = habits.length;
 
-  // Today's Score = % of habits done today (or 0 if none)
   const todayScore = totalHabits > 0 ? Math.round((doneHabits / totalHabits) * 100) : 0;
   document.getElementById('todayScore').textContent = todayScore + '%';
 
-  // Stats row
   document.getElementById('statHabits').textContent = `${doneHabits}/${totalHabits}`;
   document.getElementById('statGoals').textContent = goals.length;
 
-  // Best score = highest goal progress (or 0)
   const bestScore = goals.length > 0 ? Math.max(...goals.map(g => g.progress)) : 0;
   document.getElementById('statBest').textContent = bestScore + '%';
 
-  // Day streak - simple placeholder logic (counts as 1 if any habit done today, else 0)
   document.getElementById('statStreak').textContent = doneHabits > 0 ? 1 : 0;
 
   // ===== TODAY'S HABITS PREVIEW =====
@@ -184,26 +182,29 @@
       goalList.appendChild(div);
     });
   }
-  // ===== TODO PREVIEW ON DASHBOARD =====
-const todos = JSON.parse(localStorage.getItem('todos')) || [];
-const dashTodoList = document.getElementById('dashTodoList');
-const dashTodoEmpty = document.getElementById('dashTodoEmpty');
 
-if (todos.length === 0) {
-  dashTodoEmpty.style.display = 'block';
-} else {
-  dashTodoEmpty.style.display = 'none';
-  const priorityEmoji = p => p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
-  todos.slice(0, 3).forEach(todo => {
-    const div = document.createElement('div');
-    div.className = 'habit-item' + (todo.done ? ' done' : '');
-    div.innerHTML = `
-      <span class="habit-check ${todo.done ? '' : 'empty'}">${todo.done ? '✓' : '○'}</span>
-      <span>${priorityEmoji(todo.priority)} ${todo.name}</span>
-    `;
-    dashTodoList.appendChild(div);
-  });
-}
+  // ===== TODO PREVIEW =====
+  const todos = JSON.parse(localStorage.getItem('todos')) || [];
+  const dashTodoList = document.getElementById('dashTodoList');
+  const dashTodoEmpty = document.getElementById('dashTodoEmpty');
+
+  if (todos.length === 0) {
+    dashTodoEmpty.style.display = 'block';
+  } else {
+    dashTodoEmpty.style.display = 'none';
+    const priorityEmoji = p => p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
+    todos.slice(0, 3).forEach(todo => {
+      const div = document.createElement('div');
+      div.className = 'habit-item' + (todo.done ? ' done' : '');
+      div.innerHTML = `
+        <span class="habit-check ${todo.done ? '' : 'empty'}">${todo.done ? '✓' : '○'}</span>
+        <span>${priorityEmoji(todo.priority)} ${todo.name}</span>
+      `;
+      dashTodoList.appendChild(div);
+    });
+  }
 </script>
+
+
 </body>
 </html>
