@@ -113,6 +113,8 @@
 
 <script type="module">
   import { checkLogin, logoutUser } from './js/auth.js';
+  import { db, collection, getDocs, query, where } from './js/firebase-config.js';
+
   window.logoutUser = logoutUser;
 
   const user = checkLogin();
@@ -122,88 +124,106 @@
     document.getElementById('welcomeName').textContent = greeting + ', ' + user.name + ' 🌸';
   }
 
-  // ===== LOAD REAL DATA =====
-  const habits = JSON.parse(localStorage.getItem('habits')) || [];
-  const goals = JSON.parse(localStorage.getItem('goals')) || [];
+  const userEmail = user ? user.email : null;
 
-  const doneHabits = habits.filter(h => h.done).length;
-  const totalHabits = habits.length;
+  async function loadDashboard() {
+    if (!userEmail) return;
 
-  const todayScore = totalHabits > 0 ? Math.round((doneHabits / totalHabits) * 100) : 0;
-  document.getElementById('todayScore').textContent = todayScore + '%';
+    // ===== LOAD HABITS =====
+    const habitsSnap = await getDocs(query(collection(db, 'habits'), where('userEmail', '==', userEmail)));
+    const habits = [];
+    habitsSnap.forEach(d => habits.push(d.data()));
 
-  document.getElementById('statHabits').textContent = `${doneHabits}/${totalHabits}`;
-  document.getElementById('statGoals').textContent = goals.length;
+    const doneHabits = habits.filter(h => h.done).length;
+    const totalHabits = habits.length;
+    const todayScore = totalHabits > 0 ? Math.round((doneHabits / totalHabits) * 100) : 0;
 
-  const bestScore = goals.length > 0 ? Math.max(...goals.map(g => g.progress)) : 0;
-  document.getElementById('statBest').textContent = bestScore + '%';
+    document.getElementById('todayScore').textContent = todayScore + '%';
+    document.getElementById('statHabits').textContent = `${doneHabits}/${totalHabits}`;
 
- const savedStreak = localStorage.getItem('currentStreak') || 0;
- document.getElementById('statStreak').textContent = savedStreak;
+    // ===== LOAD GOALS =====
+    const goalsSnap = await getDocs(query(collection(db, 'goals'), where('userEmail', '==', userEmail)));
+    const goals = [];
+    goalsSnap.forEach(d => goals.push(d.data()));
 
-  // ===== TODAY'S HABITS PREVIEW =====
-  const habitList = document.getElementById('dashHabitList');
-  const habitEmpty = document.getElementById('dashHabitEmpty');
+    document.getElementById('statGoals').textContent = goals.length;
 
-  if (habits.length === 0) {
-    habitEmpty.style.display = 'block';
-  } else {
-    habitEmpty.style.display = 'none';
-    habits.slice(0, 5).forEach(habit => {
-      const li = document.createElement('li');
-      li.className = 'habit-item' + (habit.done ? ' done' : '');
-      li.innerHTML = `
-        <span class="habit-check ${habit.done ? '' : 'empty'}">${habit.done ? '✓' : '○'}</span>
-        <span>${habit.name}</span>
-      `;
-      habitList.appendChild(li);
-    });
+    const bestScore = goals.length > 0 ? Math.max(...goals.map(g => g.progress)) : 0;
+    document.getElementById('statBest').textContent = bestScore + '%';
+
+    // ===== STREAK =====
+    const savedStreak = localStorage.getItem('currentStreak') || 0;
+    document.getElementById('statStreak').textContent = savedStreak;
+
+    // ===== HABITS PREVIEW =====
+    const habitList = document.getElementById('dashHabitList');
+    const habitEmpty = document.getElementById('dashHabitEmpty');
+
+    if (habits.length === 0) {
+      habitEmpty.style.display = 'block';
+    } else {
+      habitEmpty.style.display = 'none';
+      habits.slice(0, 5).forEach(habit => {
+        const li = document.createElement('li');
+        li.className = 'habit-item' + (habit.done ? ' done' : '');
+        li.innerHTML = `
+          <span class="habit-check ${habit.done ? '' : 'empty'}">${habit.done ? '✓' : '○'}</span>
+          <span>${habit.name}</span>
+        `;
+        habitList.appendChild(li);
+      });
+    }
+
+    // ===== GOALS PREVIEW =====
+    const goalList = document.getElementById('dashGoalList');
+    const goalEmpty = document.getElementById('dashGoalEmpty');
+
+    if (goals.length === 0) {
+      goalEmpty.style.display = 'block';
+    } else {
+      goalEmpty.style.display = 'none';
+      goals.slice(0, 3).forEach(goal => {
+        const div = document.createElement('div');
+        div.className = 'goal-item';
+        div.innerHTML = `
+          <div class="goal-info">
+            <p>${goal.name}</p>
+            <span>${goal.progress}% done</span>
+          </div>
+          <div class="goal-bar">
+            <div class="goal-fill" style="width:${goal.progress}%"></div>
+          </div>
+        `;
+        goalList.appendChild(div);
+      });
+    }
+
+    // ===== TODO PREVIEW =====
+    const todosSnap = await getDocs(query(collection(db, 'todos'), where('userEmail', '==', userEmail)));
+    const todos = [];
+    todosSnap.forEach(d => todos.push(d.data()));
+
+    const dashTodoList = document.getElementById('dashTodoList');
+    const dashTodoEmpty = document.getElementById('dashTodoEmpty');
+
+    if (todos.length === 0) {
+      dashTodoEmpty.style.display = 'block';
+    } else {
+      dashTodoEmpty.style.display = 'none';
+      const priorityEmoji = p => p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
+      todos.slice(0, 3).forEach(todo => {
+        const div = document.createElement('div');
+        div.className = 'habit-item' + (todo.done ? ' done' : '');
+        div.innerHTML = `
+          <span class="habit-check ${todo.done ? '' : 'empty'}">${todo.done ? '✓' : '○'}</span>
+          <span>${priorityEmoji(todo.priority)} ${todo.name}</span>
+        `;
+        dashTodoList.appendChild(div);
+      });
+    }
   }
 
-  // ===== ACTIVE GOALS PREVIEW =====
-  const goalList = document.getElementById('dashGoalList');
-  const goalEmpty = document.getElementById('dashGoalEmpty');
-
-  if (goals.length === 0) {
-    goalEmpty.style.display = 'block';
-  } else {
-    goalEmpty.style.display = 'none';
-    goals.slice(0, 3).forEach(goal => {
-      const div = document.createElement('div');
-      div.className = 'goal-item';
-      div.innerHTML = `
-        <div class="goal-info">
-          <p>${goal.name}</p>
-          <span>${goal.progress}% done</span>
-        </div>
-        <div class="goal-bar">
-          <div class="goal-fill" style="width:${goal.progress}%"></div>
-        </div>
-      `;
-      goalList.appendChild(div);
-    });
-  }
-
-  // ===== TODO PREVIEW =====
-  const todos = JSON.parse(localStorage.getItem('todos')) || [];
-  const dashTodoList = document.getElementById('dashTodoList');
-  const dashTodoEmpty = document.getElementById('dashTodoEmpty');
-
-  if (todos.length === 0) {
-    dashTodoEmpty.style.display = 'block';
-  } else {
-    dashTodoEmpty.style.display = 'none';
-    const priorityEmoji = p => p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
-    todos.slice(0, 3).forEach(todo => {
-      const div = document.createElement('div');
-      div.className = 'habit-item' + (todo.done ? ' done' : '');
-      div.innerHTML = `
-        <span class="habit-check ${todo.done ? '' : 'empty'}">${todo.done ? '✓' : '○'}</span>
-        <span>${priorityEmoji(todo.priority)} ${todo.name}</span>
-      `;
-      dashTodoList.appendChild(div);
-    });
-  }
+  loadDashboard();
 </script>
 
 

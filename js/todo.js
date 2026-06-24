@@ -65,40 +65,42 @@ function renderTodos() {
     const index = todo._index;
     const priorityEmoji = todo.priority === 'high' ? '🔴' : todo.priority === 'medium' ? '🟡' : '🟢';
 
+    // Deadline logic
+    let deadlineText = '';
+    let deadlineClass = '';
+    if (todo.deadline) {
+      const deadlineDate = new Date(todo.deadline);
+      const now = new Date();
+      const timeLeft = deadlineDate - now;
+      const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+
+      if (timeLeft < 0) {
+        deadlineClass = 'overdue';
+        deadlineText = `⚠️ Overdue!`;
+      } else if (hoursLeft < 24) {
+        deadlineClass = 'soon';
+        deadlineText = `⏰ Due in ${hoursLeft}h`;
+      } else {
+        deadlineText = `📅 ${deadlineDate.toLocaleDateString()} ${deadlineDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+    }
+
     const li = document.createElement('li');
     li.className = 'habit-item' + (todo.done ? ' done' : '');
-    // Check if deadline passed
-let deadlineText = '';
-let deadlineWarning = '';
-if (todo.deadline) {
-  const deadlineDate = new Date(todo.deadline);
-  const now = new Date();
-  const timeLeft = deadlineDate - now;
-  const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
-
-  if (timeLeft < 0) {
-    deadlineWarning = 'overdue';
-    deadlineText = `⚠️ Overdue!`;
-  } else if (hoursLeft < 24) {
-    deadlineWarning = 'soon';
-    deadlineText = `⏰ Due in ${hoursLeft}h`;
-  } else {
-    deadlineText = `📅 ${deadlineDate.toLocaleDateString()} ${deadlineDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-  }
-}
-
-li.innerHTML = `
-  <span class="habit-check ${todo.done ? '' : 'empty'}"
-    onclick="toggleTodo(${index})">
-    ${todo.done ? '✓' : '○'}
-  </span>
-  <span class="todo-priority">${priorityEmoji}</span>
-  <div style="flex:1;">
-    <span>${todo.name}</span>
-    ${deadlineText ? `<div class="todo-deadline ${deadlineWarning}">${deadlineText}</div>` : ''}
-  </div>
-  <span class="habit-delete" onclick="deleteTodo(${index})">🗑</span>
-`;
+    li.style.alignItems = 'flex-start';
+    li.innerHTML = `
+      <span class="habit-check ${todo.done ? '' : 'empty'}"
+        onclick="toggleTodo(${index})"
+        style="margin-top:4px;">
+        ${todo.done ? '✓' : '○'}
+      </span>
+      <span class="todo-priority" style="margin-top:4px;">${priorityEmoji}</span>
+      <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+        <span style="font-size:0.9rem; color:#3E2E1E;">${todo.name}</span>
+        ${deadlineText ? `<span class="todo-deadline ${deadlineClass}">${deadlineText}</span>` : ''}
+      </div>
+      <span class="habit-delete" onclick="deleteTodo(${index})" style="margin-top:4px;">🗑</span>
+    `;
     list.appendChild(li);
   });
 
