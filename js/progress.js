@@ -6,7 +6,7 @@ const userEmail = loggedInUser ? loggedInUser.email : null;
 async function loadProgress() {
   if (!userEmail) return;
 
-  // ===== LOAD ALL DATA =====
+  // ===== LOAD ALL DATA FROM FIREBASE =====
   const habitsSnap = await getDocs(query(collection(db, 'habits'), where('userEmail', '==', userEmail)));
   const habits = [];
   habitsSnap.forEach(d => habits.push(d.data()));
@@ -33,7 +33,7 @@ async function loadProgress() {
   const doneTodos = todos.filter(t => t.done).length;
   const todoScore = totalTodos > 0 ? Math.round((doneTodos / totalTodos) * 100) : 0;
 
-  // Overall score = average of all 3
+  // Overall = average of habits + goals + todos
   const overallScore = Math.round((habitScore + avgGoalProgress + todoScore) / 3);
 
   // ===== UPDATE SUMMARY CARDS =====
@@ -41,6 +41,8 @@ async function loadProgress() {
   document.getElementById('doneHabits').textContent = doneHabits;
   document.getElementById('totalGoals').textContent = totalGoals;
   document.getElementById('avgProgress').textContent = avgGoalProgress + '%';
+  document.getElementById('totalTodos').textContent = totalTodos;
+  document.getElementById('doneTodos').textContent = doneTodos;
 
   // ===== HABITS DOUGHNUT CHART =====
   const habitsCtx = document.getElementById('habitsChart').getContext('2d');
@@ -49,7 +51,7 @@ async function loadProgress() {
     data: {
       labels: ['Completed', 'Remaining'],
       datasets: [{
-        data: [doneHabits, totalHabits - doneHabits],
+        data: [doneHabits, Math.max(0, totalHabits - doneHabits)],
         backgroundColor: ['#87A878', '#e0ddd6'],
         borderWidth: 0
       }]
@@ -75,11 +77,7 @@ async function loadProgress() {
     },
     options: {
       scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          ticks: { callback: val => val + '%' }
-        }
+        y: { beginAtZero: true, max: 100, ticks: { callback: val => val + '%' } }
       },
       plugins: { legend: { display: false } }
     }
@@ -88,21 +86,17 @@ async function loadProgress() {
   // ===== WEEKLY SCORE LINE CHART =====
   const today = new Date();
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   let weeklyScores = JSON.parse(localStorage.getItem('weeklyScores')) || {};
-  const todayKey = today.toDateString();
-  weeklyScores[todayKey] = overallScore;
+  weeklyScores[today.toDateString()] = overallScore;
   localStorage.setItem('weeklyScores', JSON.stringify(weeklyScores));
 
   const chartLabels = [];
   const chartData = [];
-
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(today.getDate() - i);
-    const key = d.toDateString();
     chartLabels.push(dayNames[d.getDay()]);
-    chartData.push(weeklyScores[key] !== undefined ? weeklyScores[key] : 0);
+    chartData.push(weeklyScores[d.toDateString()] || 0);
   }
 
   const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
@@ -123,11 +117,45 @@ async function loadProgress() {
     },
     options: {
       scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          ticks: { callback: val => val + '%' }
-        }
+        y: { beginAtZero: true, max: 100, ticks: { callback: val => val + '%' } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // ===== TODOS DOUGHNUT CHART =====
+  const todosCtx = document.getElementById('todosChart').getContext('2d');
+  new Chart(todosCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Completed', 'Remaining'],
+      datasets: [{
+        data: [doneTodos, Math.max(0, totalTodos - doneTodos)],
+        backgroundColor: ['#5C7A4E', '#e0ddd6'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom' } },
+      cutout: '70%'
+    }
+  });
+
+  // ===== OVERALL BREAKDOWN BAR CHART =====
+  const overallCtx = document.getElementById('overallChart').getContext('2d');
+  new Chart(overallCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Habits Score', 'Goals Progress', 'Tasks Score', 'Overall Score'],
+      datasets: [{
+        data: [habitScore, avgGoalProgress, todoScore, overallScore],
+        backgroundColor: ['#87A878', '#5C7A4E', '#C9A84C', '#3D5C35'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { callback: val => val + '%' } }
       },
       plugins: { legend: { display: false } }
     }

@@ -32,28 +32,39 @@
     </div>
 
     <!-- SUMMARY CARDS -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <span>📋</span>
-        <h3 id="totalHabits">0</h3>
-        <p>Total Habits</p>
-      </div>
-      <div class="stat-card">
-        <span>✅</span>
-        <h3 id="doneHabits">0</h3>
-        <p>Completed Today</p>
-      </div>
-      <div class="stat-card">
-        <span>🎯</span>
-        <h3 id="totalGoals">0</h3>
-        <p>Total Goals</p>
-      </div>
-      <div class="stat-card">
-        <span>📈</span>
-        <h3 id="avgProgress">0%</h3>
-        <p>Avg Goal Progress</p>
-      </div>
-    </div>
+   <!-- SUMMARY CARDS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <span>📋</span>
+    <h3 id="totalHabits">0</h3>
+    <p>Total Habits</p>
+  </div>
+  <div class="stat-card">
+    <span>✅</span>
+    <h3 id="doneHabits">0</h3>
+    <p>Habits Done</p>
+  </div>
+  <div class="stat-card">
+    <span>🎯</span>
+    <h3 id="totalGoals">0</h3>
+    <p>Total Goals</p>
+  </div>
+  <div class="stat-card">
+    <span>📈</span>
+    <h3 id="avgProgress">0%</h3>
+    <p>Avg Goal Progress</p>
+  </div>
+  <div class="stat-card">
+    <span>📝</span>
+    <h3 id="totalTodos">0</h3>
+    <p>Total Tasks</p>
+  </div>
+  <div class="stat-card">
+    <span>🗂️</span>
+    <h3 id="doneTodos">0</h3>
+    <p>Tasks Done</p>
+  </div>
+</div>
 
     <!-- CHARTS ROW -->
 <div class="progress-grid">
@@ -84,8 +95,26 @@
 
 </div>
 
+<!-- SECOND ROW -->
+<div class="progress-grid" style="margin-top: 20px;">
+
+  <!-- TODO CHART -->
+  <div class="dash-card">
+    <div class="dash-card-header">
+      <h3>✅ Tasks Overview</h3>
     </div>
+    <canvas id="todosChart"></canvas>
   </div>
+
+  <!-- OVERALL SCORE CHART -->
+  <div class="dash-card" style="grid-column: span 2;">
+    <div class="dash-card-header">
+      <h3>🌿 Overall Productivity Breakdown</h3>
+    </div>
+    <canvas id="overallChart"></canvas>
+  </div>
+
+</div>
 
 
 <script type="module">
