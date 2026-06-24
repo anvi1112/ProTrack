@@ -1,9 +1,29 @@
-let goals = JSON.parse(localStorage.getItem('goals')) || [];
+import { db, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from './firebase-config.js';
 
-function saveGoals() {
-  localStorage.setItem('goals', JSON.stringify(goals));
+const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+const userEmail = loggedInUser ? loggedInUser.email : null;
+
+let goals = [];
+let goalDocIds = [];
+
+// ===== LOAD GOALS =====
+async function loadGoals() {
+  if (!userEmail) return;
+  goals = [];
+  goalDocIds = [];
+
+  const q = query(collection(db, 'goals'), where('userEmail', '==', userEmail));
+  const snapshot = await getDocs(q);
+
+  snapshot.forEach(d => {
+    goals.push(d.data());
+    goalDocIds.push(d.id);
+  });
+
+  renderGoals();
 }
 
+// ===== RENDER GOALS =====
 function renderGoals() {
   const list = document.getElementById('goalList');
   const emptyMsg = document.getElementById('goalEmptyMsg');
@@ -27,9 +47,9 @@ function renderGoals() {
       <div class="goal-info">
         <p>${goal.name}</p>
         <div style="display:flex; align-items:center; gap:12px;">
-          <input 
-            type="number" 
-            value="${goal.progress}" 
+          <input
+            type="number"
+            value="${goal.progress}"
             min="0" max="100"
             onchange="updateProgress(${index}, this.value)"
             class="progress-input"
@@ -39,45 +59,47 @@ function renderGoals() {
         </div>
       </div>
       <div class="goal-bar" style="margin-top:10px;">
-        <div class="goal-fill" id="fill-${index}" style="width:${goal.progress}%"></div>
+        <div class="goal-fill" style="width:${goal.progress}%"></div>
       </div>
     `;
     list.appendChild(div);
   });
 }
 
-function addGoal() {
+// ===== ADD GOAL =====
+window.addGoal = async function() {
   const nameInput = document.getElementById('goalInput');
   const progressInput = document.getElementById('goalProgress');
 
   const name = nameInput.value.trim();
   let progress = parseInt(progressInput.value);
 
-  if (!name) return;
+  if (!name || !userEmail) return;
   if (isNaN(progress) || progress < 0) progress = 0;
   if (progress > 100) progress = 100;
 
-  goals.push({ name, progress });
-  saveGoals();
-  renderGoals();
+  await addDoc(collection(db, 'goals'), { name, progress, userEmail });
 
   nameInput.value = '';
   progressInput.value = '';
+  await loadGoals();
 }
 
-function updateProgress(index, value) {
+// ===== UPDATE PROGRESS =====
+window.updateProgress = async function(index, value) {
   let progress = parseInt(value);
   if (isNaN(progress) || progress < 0) progress = 0;
   if (progress > 100) progress = 100;
-  goals[index].progress = progress;
-  saveGoals();
-  renderGoals();
+
+  await updateDoc(doc(db, 'goals', goalDocIds[index]), { progress });
+  await loadGoals();
 }
 
-function deleteGoal(index) {
-  goals.splice(index, 1);
-  saveGoals();
-  renderGoals();
+// ===== DELETE GOAL =====
+window.deleteGoal = async function(index) {
+  await deleteDoc(doc(db, 'goals', goalDocIds[index]));
+  await loadGoals();
 }
 
-renderGoals();
+// ===== INIT =====
+loadGoals();
