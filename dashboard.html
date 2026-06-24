@@ -212,11 +212,34 @@
       dashTodoEmpty.style.display = 'none';
       const priorityEmoji = p => p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢';
       todos.slice(0, 3).forEach(todo => {
+        let deadlineText = '';
+        let deadlineClass = '';
+        if (todo.deadline) {
+          const deadlineDate = new Date(todo.deadline);
+          const now = new Date();
+          const timeLeft = deadlineDate - now;
+          const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+
+          if (timeLeft < 0) {
+            deadlineClass = 'overdue';
+            deadlineText = `⚠️ Overdue!`;
+          } else if (hoursLeft < 24) {
+            deadlineClass = 'soon';
+            deadlineText = `⏰ Due in ${hoursLeft}h`;
+          } else {
+            deadlineText = `📅 ${deadlineDate.toLocaleDateString()} ${deadlineDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          }
+        }
+
         const div = document.createElement('div');
         div.className = 'habit-item' + (todo.done ? ' done' : '');
+        div.style.alignItems = 'flex-start';
         div.innerHTML = `
-          <span class="habit-check ${todo.done ? '' : 'empty'}">${todo.done ? '✓' : '○'}</span>
-          <span>${priorityEmoji(todo.priority)} ${todo.name}</span>
+          <span class="habit-check ${todo.done ? '' : 'empty'}" style="margin-top:4px;">${todo.done ? '✓' : '○'}</span>
+          <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+            <span>${priorityEmoji(todo.priority)} ${todo.name}</span>
+            ${deadlineText ? `<span class="todo-deadline ${deadlineClass}">${deadlineText}</span>` : ''}
+          </div>
         `;
         dashTodoList.appendChild(div);
       });
