@@ -37,18 +37,16 @@
     </div>
 
     <!-- ADD TODO -->
-    <div class="add-habit-card">
-      <h3>Add a New Task</h3>
-      <div class="add-todo-row">
-        <input type="text" id="todoInput" placeholder="e.g. Submit assignment..." />
-        <select id="todoPriority">
-          <option value="high">🔴 High</option>
-          <option value="medium" selected>🟡 Medium</option>
-          <option value="low">🟢 Low</option>
-        </select>
-        <button onclick="addTodo()">+ Add Task</button>
-      </div>
-    </div>
+    <div class="add-todo-row">
+  <input type="text" id="todoInput" placeholder="e.g. Submit assignment..." />
+  <select id="todoPriority">
+    <option value="high">🔴 High</option>
+    <option value="medium" selected>🟡 Medium</option>
+    <option value="low">🟢 Low</option>
+  </select>
+  <input type="datetime-local" id="todoDeadline" />
+  <button onclick="addTodo()">+ Add Task</button>
+</div>
 
     <!-- TODO LIST -->
     <div class="dash-card" style="margin-top: 24px;">

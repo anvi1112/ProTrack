@@ -138,7 +138,8 @@
   const bestScore = goals.length > 0 ? Math.max(...goals.map(g => g.progress)) : 0;
   document.getElementById('statBest').textContent = bestScore + '%';
 
-  document.getElementById('statStreak').textContent = doneHabits > 0 ? 1 : 0;
+ const savedStreak = localStorage.getItem('currentStreak') || 0;
+ document.getElementById('statStreak').textContent = savedStreak;
 
   // ===== TODAY'S HABITS PREVIEW =====
   const habitList = document.getElementById('dashHabitList');

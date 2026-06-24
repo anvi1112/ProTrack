@@ -1,18 +1,61 @@
-import { db, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } from './firebase-config.js';
+import { db, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, setDoc } from './firebase-config.js';
 
-// Get logged in user
 const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 const userEmail = loggedInUser ? loggedInUser.email : null;
 
 let habits = [];
 let habitDocIds = [];
 
-// ===== DAILY RESET CHECK =====
+// ===== STREAK TRACKING =====
+async function updateStreak() {
+  if (!userEmail) return;
+
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+  // Get streak doc from Firebase
+  const streakRef = doc(db, 'streaks', userEmail);
+  const streakSnap = await getDocs(query(collection(db, 'streaks'), where('userEmail', '==', userEmail)));
+
+  let streakData = { userEmail, streak: 0, lastDate: null };
+
+  if (!streakSnap.empty) {
+    streakData = streakSnap.docs[0].data();
+  }
+
+  const doneToday = habits.some(h => h.done);
+
+  if (doneToday) {
+    if (streakData.lastDate === yesterday) {
+      // Consecutive day — increase streak
+      streakData.streak += 1;
+    } else if (streakData.lastDate !== today) {
+      // New day but not consecutive — reset to 1
+      streakData.streak = 1;
+    }
+    streakData.lastDate = today;
+
+    // Save to Firebase
+    await setDoc(doc(db, 'streaks', userEmail), streakData);
+  } else if (streakData.lastDate !== today && streakData.lastDate !== yesterday) {
+    // Missed a day — reset streak
+    streakData.streak = 0;
+    await setDoc(doc(db, 'streaks', userEmail), streakData);
+  }
+
+  // Update dashboard streak display if on dashboard
+  const streakEl = document.getElementById('statStreak');
+  if (streakEl) streakEl.textContent = streakData.streak;
+
+  // Store in localStorage for dashboard to read
+  localStorage.setItem('currentStreak', streakData.streak);
+}
+
+// ===== DAILY RESET =====
 async function checkNewDay() {
   const today = new Date().toDateString();
   const lastVisit = localStorage.getItem('lastVisitDate');
   if (lastVisit !== today) {
-    // Reset all habits done status
     for (let i = 0; i < habits.length; i++) {
       if (habits[i].done) {
         await updateDoc(doc(db, 'habits', habitDocIds[i]), { done: false });
@@ -23,7 +66,7 @@ async function checkNewDay() {
   }
 }
 
-// ===== LOAD HABITS FROM FIREBASE =====
+// ===== LOAD HABITS =====
 async function loadHabits() {
   if (!userEmail) return;
   habits = [];
@@ -38,6 +81,7 @@ async function loadHabits() {
   });
 
   renderHabits();
+  await updateStreak();
 }
 
 // ===== RENDER HABITS =====
@@ -84,11 +128,7 @@ window.addHabit = async function() {
   const name = input.value.trim();
   if (!name || !userEmail) return;
 
-  await addDoc(collection(db, 'habits'), {
-    name,
-    done: false,
-    userEmail
-  });
+  await addDoc(collection(db, 'habits'), { name, done: false, userEmail });
 
   input.value = '';
   input.focus();
@@ -123,7 +163,7 @@ function updateReminder() {
     const noneChecked = habits.every(h => !h.done);
 
     if (allDone) {
-      banner.innerHTML = `<span>🎉</span><p>Amazing! You've completed all your habits for today! 🔥</p>`;
+      banner.innerHTML = `<span>🎉</span><p>Amazing! All habits done today! 🔥</p>`;
       banner.style.display = 'flex';
     } else if (noneChecked) {
       banner.innerHTML = `<span>🔔</span><p>You haven't checked off any habits today! 🌱</p>`;

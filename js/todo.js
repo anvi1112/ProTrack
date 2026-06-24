@@ -67,15 +67,38 @@ function renderTodos() {
 
     const li = document.createElement('li');
     li.className = 'habit-item' + (todo.done ? ' done' : '');
-    li.innerHTML = `
-      <span class="habit-check ${todo.done ? '' : 'empty'}"
-        onclick="toggleTodo(${index})">
-        ${todo.done ? '✓' : '○'}
-      </span>
-      <span class="todo-priority">${priorityEmoji}</span>
-      <span>${todo.name}</span>
-      <span class="habit-delete" onclick="deleteTodo(${index})">🗑</span>
-    `;
+    // Check if deadline passed
+let deadlineText = '';
+let deadlineWarning = '';
+if (todo.deadline) {
+  const deadlineDate = new Date(todo.deadline);
+  const now = new Date();
+  const timeLeft = deadlineDate - now;
+  const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+
+  if (timeLeft < 0) {
+    deadlineWarning = 'overdue';
+    deadlineText = `⚠️ Overdue!`;
+  } else if (hoursLeft < 24) {
+    deadlineWarning = 'soon';
+    deadlineText = `⏰ Due in ${hoursLeft}h`;
+  } else {
+    deadlineText = `📅 ${deadlineDate.toLocaleDateString()} ${deadlineDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+  }
+}
+
+li.innerHTML = `
+  <span class="habit-check ${todo.done ? '' : 'empty'}"
+    onclick="toggleTodo(${index})">
+    ${todo.done ? '✓' : '○'}
+  </span>
+  <span class="todo-priority">${priorityEmoji}</span>
+  <div style="flex:1;">
+    <span>${todo.name}</span>
+    ${deadlineText ? `<div class="todo-deadline ${deadlineWarning}">${deadlineText}</div>` : ''}
+  </div>
+  <span class="habit-delete" onclick="deleteTodo(${index})">🗑</span>
+`;
     list.appendChild(li);
   });
 
@@ -87,12 +110,22 @@ function renderTodos() {
 window.addTodo = async function() {
   const input = document.getElementById('todoInput');
   const priority = document.getElementById('todoPriority').value;
+  const deadlineInput = document.getElementById('todoDeadline');
   const name = input.value.trim();
+  const deadline = deadlineInput ? deadlineInput.value : '';
+
   if (!name || !userEmail) return;
 
-  await addDoc(collection(db, 'todos'), { name, priority, done: false, userEmail });
+  await addDoc(collection(db, 'todos'), {
+    name,
+    priority,
+    deadline,
+    done: false,
+    userEmail
+  });
 
   input.value = '';
+  if (deadlineInput) deadlineInput.value = '';
   input.focus();
   showToast('Task added! 🌱');
   await loadTodos();
