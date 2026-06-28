@@ -9,7 +9,6 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
   <nav class="navbar">
     <a href="index.html" class="logo">🌿 ProTrack</a>
     <div class="nav-links">
@@ -22,7 +21,6 @@
     </div>
   </nav>
 
-  <!-- DASHBOARD BODY -->
   <div class="dashboard">
 
     <!-- WELCOME BANNER -->
@@ -50,6 +48,11 @@
         <p>Goals Active</p>
       </div>
       <div class="stat-card">
+        <span>✅</span>
+        <h3 id="statTodos">0/0</h3>
+        <p>Tasks Done</p>
+      </div>
+      <div class="stat-card">
         <span>🔥</span>
         <h3 id="statStreak">0</h3>
         <p>Day Streak</p>
@@ -72,8 +75,8 @@
         </div>
         <ul class="habit-list" id="dashHabitList"></ul>
         <p class="empty-msg" id="dashHabitEmpty">
-          You haven't added any habits yet!
-          <a href="habits.html" style="color:#87A878; font-weight:500;">Add your first habit →</a>
+          No habits yet!
+          <a href="habits.html" style="color:#87A878; font-weight:500;">Add habits →</a>
         </p>
       </div>
 
@@ -85,12 +88,12 @@
         </div>
         <div id="dashGoalList"></div>
         <p class="empty-msg" id="dashGoalEmpty">
-          You haven't set any goals yet!
-          <a href="goals.html" style="color:#87A878; font-weight:500;">Set your first goal →</a>
+          No goals yet!
+          <a href="goals.html" style="color:#87A878; font-weight:500;">Set goals →</a>
         </p>
       </div>
 
-      <!-- TODO PREVIEW -->
+      <!-- TODAY'S TASKS -->
       <div class="dash-card todo-preview-card">
         <div class="dash-card-header">
           <h3>✅ Today's Tasks</h3>
@@ -120,7 +123,7 @@
 
 <script type="module">
   import { checkLogin, logoutUser } from './js/auth.js';
-  import { db, collection, query, where, onSnapshot } from './js/firebase-config.js';
+  import { db, collection, query, where, onSnapshot, getDocs, updateDoc, doc } from './js/firebase-config.js';
 
   window.logoutUser = logoutUser;
 
@@ -134,6 +137,24 @@
   const userEmail = user ? user.email : null;
   if (!userEmail) return;
 
+  // ===== AUTO DAILY RESET =====
+  async function checkAndResetDay() {
+    const today = new Date().toDateString();
+    const lastVisit = localStorage.getItem('lastDashVisit');
+    if (lastVisit !== today) {
+      const habitsSnap = await getDocs(query(collection(db, 'habits'), where('userEmail', '==', userEmail)));
+      const resetPromises = [];
+      habitsSnap.forEach(d => {
+        if (d.data().done) {
+          resetPromises.push(updateDoc(doc(db, 'habits', d.id), { done: false }));
+        }
+      });
+      await Promise.all(resetPromises);
+      localStorage.setItem('lastDashVisit', today);
+    }
+  }
+  checkAndResetDay();
+
   let habits = [];
   let goals = [];
   let todos = [];
@@ -142,17 +163,17 @@
     // ===== STATS =====
     const doneHabits = habits.filter(h => h.done).length;
     const totalHabits = habits.length;
+    const doneTodosCount = todos.filter(t => t.done).length;
     const todayScore = totalHabits > 0 ? Math.round((doneHabits / totalHabits) * 100) : 0;
 
     document.getElementById('todayScore').textContent = todayScore + '%';
     document.getElementById('statHabits').textContent = `${doneHabits}/${totalHabits}`;
     document.getElementById('statGoals').textContent = goals.length;
+    document.getElementById('statTodos').textContent = `${doneTodosCount}/${todos.length}`;
+    document.getElementById('statStreak').textContent = localStorage.getItem('currentStreak') || 0;
 
     const bestScore = goals.length > 0 ? Math.max(...goals.map(g => g.progress)) : 0;
     document.getElementById('statBest').textContent = bestScore + '%';
-
-    const savedStreak = localStorage.getItem('currentStreak') || 0;
-    document.getElementById('statStreak').textContent = savedStreak;
 
     // ===== HABITS PREVIEW =====
     const habitList = document.getElementById('dashHabitList');
@@ -168,7 +189,8 @@
         li.className = 'habit-item' + (habit.done ? ' done' : '');
         li.innerHTML = `
           <span class="habit-check ${habit.done ? '' : 'empty'}">${habit.done ? '✓' : '○'}</span>
-          <span>${habit.name}</span>
+          <span style="color:${habit.done ? '#999' : '#3E2E1E'}; ${habit.done ? 'text-decoration:line-through;' : ''}">${habit.name}</span>
+          <span style="margin-left:auto; font-size:0.75rem; color:${habit.done ? '#87A878' : '#c0392b'};">${habit.done ? 'Done ✅' : 'Pending'}</span>
         `;
         habitList.appendChild(li);
       });
@@ -184,12 +206,13 @@
     } else {
       goalEmpty.style.display = 'none';
       goals.slice(0, 3).forEach(goal => {
+        const remaining = 100 - goal.progress;
         const div = document.createElement('div');
         div.className = 'goal-item';
         div.innerHTML = `
           <div class="goal-info">
             <p>${goal.name}</p>
-            <span>${goal.progress}% done</span>
+            <span style="color:${goal.progress >= 100 ? '#87A878' : '#C9A84C'};">${goal.progress}% done · ${remaining}% left</span>
           </div>
           <div class="goal-bar">
             <div class="goal-fill" style="width:${goal.progress}%"></div>
@@ -214,7 +237,6 @@
       dashTodoEmpty.style.display = 'none';
       todoSummary.style.display = 'block';
 
-      const doneTodosCount = todos.filter(t => t.done).length;
       const todoPercent = Math.round((doneTodosCount / todos.length) * 100);
       todoSummaryFill.style.width = todoPercent + '%';
       todoSummaryText.textContent = `${doneTodosCount} of ${todos.length} tasks completed (${todoPercent}%)`;

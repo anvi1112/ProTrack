@@ -1095,3 +1095,57 @@ footer {
     grid-column: span 1;
   }
 }
+
+
+/* ===== MOTIVATION SECTION ===== */
+.motivation-section {
+  display: flex;
+  gap: 20px;
+  padding: 48px 60px;
+  background-color: #F5F0E8;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.motivation-card {
+  background-color: #FAFAF7;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 220px;
+  text-align: center;
+  border: 1px solid #e8e3da;
+  transition: transform 0.3s;
+}
+
+.motivation-card:hover {
+  transform: translateY(-6px);
+}
+
+.motivation-card span {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.motivation-card h3 {
+  font-size: 1rem;
+  color: #5C7A4E;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.motivation-card p {
+  font-size: 0.85rem;
+  color: #6b5744;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .motivation-section {
+    padding: 32px 20px;
+  }
+  .motivation-card {
+    width: 100%;
+    max-width: 320px;
+  }
+}
